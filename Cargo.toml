@@ -1,0 +1,54 @@
+[package]
+name = "always-english"
+version = "2.0.0"
+edition = "2024"
+description = "Keep selected Windows apps on the English (US) keyboard layout. A Rust + Slint rewrite of ChaXxl/AlwaysEnglish."
+license = "Apache-2.0"
+repository = "https://github.com/just-liuyi/AlwaysEnglish-rs"
+readme = "README.md"
+keywords = ["windows", "ime", "keyboard-layout", "slint", "tray"]
+categories = ["gui"]
+build = "build.rs"
+publish = false
+
+[[bin]]
+name = "AlwaysEnglish"
+path = "src/main.rs"
+
+[dependencies]
+raw-window-handle = "0.6"
+rfd = "0.17.2"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+slint = { version = "1.18.1", features = ["raw-window-handle-06", "unstable-winit-030"] }
+windows-registry = "0.100.0"
+
+[dependencies.windows]
+version = "0.62"
+features = [
+    "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_Graphics_Gdi",
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Com",
+    "Win32_System_IO",
+    "Win32_System_Pipes",
+    "Win32_System_RemoteDesktop",
+    "Win32_System_Threading",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_Common",
+    "Win32_UI_WindowsAndMessaging",
+]
+
+[build-dependencies]
+slint-build = "1.18.1"
+winresource = "0.1.34"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

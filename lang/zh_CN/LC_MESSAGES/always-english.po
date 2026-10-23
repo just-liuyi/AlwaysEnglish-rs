@@ -1,0 +1,199 @@
+# Simplified Chinese translation of AlwaysEnglish (Rust + Slint edition).
+# Most strings are taken over from the original Qt version by ChaXxl.
+msgid ""
+msgstr ""
+"Project-Id-Version: always-english\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Start Successfully"
+msgstr "启动成功"
+
+msgid "AlwaysEnglish is on for all apps"
+msgstr "已对所有软件保持英文输入法"
+
+msgid "Stopped"
+msgstr "已停止"
+
+msgid "Could not change the startup setting"
+msgstr "无法修改开机自启动设置"
+
+msgid "select an APP"
+msgstr "选择一个 APP"
+
+msgid "Programs and shortcuts"
+msgstr "程序和快捷方式"
+
+msgid "Added {}"
+msgstr "已添加 {}"
+
+msgid "{} is already in the list"
+msgstr "{} 已在列表中"
+
+msgid "Not an .exe file or shortcut: {}"
+msgstr "不是 .exe 程序或快捷方式：{}"
+
+msgid "Could not resolve the shortcut: {}"
+msgstr "无法解析快捷方式：{}"
+
+msgid "Could not save settings: {}"
+msgstr "无法保存设置：{}"
+
+msgid "Running · selected apps"
+msgstr "运行中 · 指定软件"
+
+msgid "Running · all apps"
+msgstr "运行中 · 所有软件"
+
+msgid "Not found: {}"
+msgstr "找不到文件：{}"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "App-specific settings"
+msgstr "APP 设置"
+
+msgid "The English (US) keyboard layout is not installed, so switching may not work. Please add the English (US) language in Windows settings."
+msgstr "系统没有安装美式英文输入法，软件可能无法切换。请到设置里安装美式英文语言及输入法。"
+
+msgid "Go to install"
+msgstr "去安装"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Start"
+msgstr "启动"
+
+msgid "Stop AlwaysEnglish"
+msgstr "停止始终英文"
+
+msgid "AlwaysEnglish"
+msgstr "始终为英文"
+
+msgid "Add an app"
+msgstr "添加应用"
+
+msgid "AlwaysEnglish: every app is kept on English (US). Whether Caps Lock is forced on is decided in Settings."
+msgstr "始终为英文：所有软件都保持英文输入法，是否同时打开大小写键在“设置”中决定。"
+
+msgid "Start: only the apps below whose \"Enabled\" switch is on are kept on English (US). AlwaysEnglish: keep every app on English (US)."
+msgstr "启动：只让下方列表中“启用”的软件保持英文输入法。始终为英文：所有软件都保持英文输入法（适合单机游戏玩家）。"
+
+msgid "App"
+msgstr "应用"
+
+msgid "Enabled"
+msgstr "启用"
+
+msgid "Caps Lock"
+msgstr "大小写键"
+
+msgid "Options"
+msgstr "操作"
+
+msgid "Drag .exe files or shortcuts here, or click \"Add an app\"."
+msgstr "把软件或者快捷方式拖到这里，或者点击“添加应用”。"
+
+msgid "Release to add"
+msgstr "松开即可添加"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Appearance"
+msgstr "外观"
+
+msgid "Theme"
+msgstr "夜间模式"
+
+msgid "Follow system"
+msgstr "跟随系统"
+
+msgid "Light"
+msgstr "浅色"
+
+msgid "Dark"
+msgstr "深色"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "Behavior"
+msgstr "行为"
+
+msgid "Running at start"
+msgstr "开机自启动"
+
+msgid "Start hidden in the system tray when you sign in to Windows."
+msgstr "登录 Windows 时自动启动，并隐藏在托盘中。"
+
+msgid "Resume the last mode on launch"
+msgstr "启动时恢复上次的运行状态"
+
+msgid "If monitoring was running when the app was closed, start it again automatically."
+msgstr "如果上次退出时正在运行，启动后自动继续运行。"
+
+msgid "Whether turn on Cap Lock when AlwaysEnglish is on"
+msgstr "当一直开启英文输入法时，是否一直打开大小写键"
+
+msgid "Only applies to AlwaysEnglish mode. In Start mode this is set per app."
+msgstr "仅对“始终为英文”生效；“启动”模式下请在列表中为每个软件单独设置。"
+
+msgid "When closing the window"
+msgstr "关闭窗口时"
+
+msgid "Ask every time"
+msgstr "每次询问"
+
+msgid "Minimize to tray"
+msgstr "最小化到托盘"
+
+msgid "Quit"
+msgstr "退出"
+
+msgid "About"
+msgstr "关于"
+
+msgid "Rust + Slint edition"
+msgstr "Rust + Slint 版"
+
+msgid "This is a Rust + Slint rewrite of AlwaysEnglish by ChaXxl. Many thanks to the original author for the idea and the original implementation, and to the FluentUI for QML project it was built on."
+msgstr "本项目是 ChaXxl 的 AlwaysEnglish 的 Rust + Slint 重写版。衷心感谢原作者的创意和最初的实现，也感谢原项目所使用的 FluentUI for QML。"
+
+msgid "Original project"
+msgstr "原项目"
+
+msgid "This project"
+msgstr "本项目"
+
+msgid "Are you sure you want to exit the program?"
+msgstr "确认要退出软件吗？"
+
+msgid "If minimized, AlwaysEnglish keeps running in the tray. Click the tray icon to open the window again."
+msgstr "最小化后 AlwaysEnglish 会在托盘中继续运行，点击托盘图标即可重新打开窗口。"
+
+msgid "Remember my choice"
+msgstr "记住我的选择"
+
+msgid "Minimize"
+msgstr "最小化到托盘"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Home"
+msgstr "首页"
+
+msgid "Show window"
+msgstr "显示窗口"
+
+msgid "Selected apps only"
+msgstr "仅指定软件"
+
+msgid "AlwaysEnglish (all apps)"
+msgstr "始终为英文（所有软件）"

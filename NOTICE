@@ -1,0 +1,24 @@
+AlwaysEnglish (Rust + Slint edition)
+
+This project is a rewrite of AlwaysEnglish by ChaXxl
+  https://github.com/ChaXxl/AlwaysEnglish
+which is licensed under the Apache License, Version 2.0.
+
+Material taken over from the original project:
+  - the application idea, feature set, UI layout and interaction flow
+  - the Simplified Chinese translations (adapted into lang/zh_CN/.../always-english.po)
+  - the icons in assets/: favicon.ico (and the icon.png converted from it),
+    start.png, stop.png, logo.png
+
+Changes made in this edition:
+  - the whole application was re-implemented in Rust, with a Slint user
+    interface instead of Qt/QML + FluentUI for QML;
+  - new: single-instance support, resuming the last mode on launch, a
+    configurable close-button behaviour, tray menu mode switching, settings
+    migration from the Qt version, and several bug fixes (see README.md).
+
+The original project's UI was built on FluentUI for QML by zhuzichu520
+  https://github.com/zhuzichu520/FluentUI
+
+The user interface is built with Slint (https://slint.dev), used under the
+Slint Royalty-free Desktop, Mobile, and Web Applications License 2.0.

@@ -1,0 +1,976 @@
+// AlwaysEnglish (Rust + Slint rewrite)
+// UI layout follows the original Qt/QML version by ChaXxl: https://github.com/ChaXxl/AlwaysEnglish
+
+import { Button, Switch, ComboBox, CheckBox, ScrollView, ListView, Palette } from "std-widgets.slint";
+
+export struct AppItem {
+    icon: image,
+    name: string,
+    path: string,
+    enabled: bool,
+    caps-lock: bool,
+    missing: bool,
+}
+
+export global Theme {
+    out property <bool> dark: Palette.color-scheme == ColorScheme.dark;
+    out property <brush> sidebar: dark ? #202020 : #eef1f5;
+    out property <brush> content: dark ? #1c1c1c : #f9f9f9;
+    out property <brush> card: dark ? #2b2b2b : #ffffff;
+    out property <brush> card-border: dark ? #ffffff12 : #0000000f;
+    out property <brush> hover: dark ? #ffffff0d : #00000008;
+    out property <brush> selected: dark ? #ffffff14 : #0000000d;
+    out property <brush> text: dark ? #ffffff : #1b1b1b;
+    out property <brush> text-secondary: dark ? #ffffffa6 : #00000099;
+    out property <brush> divider: dark ? #ffffff14 : #00000014;
+    out property <color> accent: dark ? #60cdff : #005fb8;
+    out property <color> success: dark ? #6ccb5f : #0f7b0f;
+    out property <color> danger: dark ? #ff99a4 : #c42b1c;
+    out property <brush> warning-bg: dark ? #433519 : #fff4ce;
+    out property <brush> overlay: #00000066;
+}
+
+// Translated messages used from Rust code (toasts).
+export global Strings {
+    out property <string> started-per-app: @tr("Start Successfully");
+    out property <string> started-always: @tr("AlwaysEnglish is on for all apps");
+    out property <string> stopped: @tr("Stopped");
+    out property <string> autostart-failed: @tr("Could not change the startup setting");
+    out property <string> pick-title: @tr("select an APP");
+    out property <string> pick-filter: @tr("Programs and shortcuts");
+    public pure function added(name: string) -> string {
+        return @tr("Added {}", name);
+    }
+    public pure function already-added(name: string) -> string {
+        return @tr("{} is already in the list", name);
+    }
+    public pure function not-exe(name: string) -> string {
+        return @tr("Not an .exe file or shortcut: {}", name);
+    }
+    public pure function shortcut-failed(name: string) -> string {
+        return @tr("Could not resolve the shortcut: {}", name);
+    }
+    public pure function save-failed(error: string) -> string {
+        return @tr("Could not save settings: {}", error);
+    }
+}
+
+component Card inherits Rectangle {
+    background: Theme.card;
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: Theme.card-border;
+}
+
+component NavItem inherits Rectangle {
+    in property <string> text;
+    in property <image> icon;
+    in property <bool> selected;
+    callback clicked;
+
+    height: 38px;
+    border-radius: 5px;
+    accessible-role: tab;
+    accessible-label: root.text;
+    accessible-item-selected: root.selected;
+    accessible-action-default => {
+        root.clicked();
+    }
+    background: root.selected ? Theme.selected : (touch.has-hover ? Theme.hover : transparent);
+
+    Rectangle {
+        x: 0;
+        y: (parent.height - self.height) / 2;
+        width: 3px;
+        height: 16px;
+        border-radius: 1.5px;
+        background: Theme.accent;
+        visible: root.selected;
+    }
+
+    HorizontalLayout {
+        padding-left: 14px;
+        spacing: 12px;
+        VerticalLayout {
+            alignment: center;
+            Image {
+                source: root.icon;
+                width: 18px;
+                height: 18px;
+                colorize: Theme.text;
+            }
+        }
+
+        Text {
+            text: root.text;
+            vertical-alignment: center;
+            color: Theme.text;
+            font-size: 14px;
+            font-weight: root.selected ? 600 : 400;
+        }
+    }
+
+    touch := TouchArea {
+        clicked => {
+            root.clicked();
+        }
+    }
+}
+
+component StatusPill inherits Rectangle {
+    in property <int> mode;
+
+    property <color> dot: root.mode == 0 ? #8a8a8a : (root.mode == 1 ? Theme.success : Theme.accent);
+    height: 26px;
+    border-radius: 13px;
+    background: root.dot.with-alpha(0.16);
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 12px;
+        spacing: 7px;
+        VerticalLayout {
+            alignment: center;
+            Rectangle {
+                width: 8px;
+                height: 8px;
+                border-radius: 4px;
+                background: root.dot;
+            }
+        }
+
+        Text {
+            vertical-alignment: center;
+            font-size: 12px;
+            color: Theme.text;
+            overflow: elide;
+            text: root.mode == 0 ? @tr("Stopped") : (root.mode == 1 ? @tr("Running · selected apps") : @tr("Running · all apps"));
+        }
+    }
+}
+
+component AppRow inherits Rectangle {
+    in property <AppItem> item;
+    callback enabled-toggled(bool);
+    callback caps-toggled(bool);
+    callback remove();
+
+    height: 58px;
+    background: touch.has-hover ? Theme.hover : transparent;
+
+    touch := TouchArea { }
+
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        spacing: 12px;
+
+        VerticalLayout {
+            alignment: center;
+            width: 32px;
+            Image {
+                source: root.item.icon;
+                width: 32px;
+                height: 32px;
+                image-fit: contain;
+                opacity: root.item.missing ? 0.4 : 1.0;
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            spacing: 2px;
+            Text {
+                text: root.item.name;
+                color: Theme.text;
+                font-size: 14px;
+                font-weight: 600;
+                overflow: elide;
+            }
+
+            Text {
+                text: root.item.missing ? @tr("Not found: {}", root.item.path) : root.item.path;
+                color: root.item.missing ? Theme.danger : Theme.text-secondary;
+                font-size: 11px;
+                overflow: elide;
+            }
+        }
+
+        HorizontalLayout {
+            width: 100px;
+            alignment: center;
+            VerticalLayout {
+                alignment: center;
+                Switch {
+                    checked: root.item.enabled;
+                    toggled => {
+                        root.enabled-toggled(self.checked);
+                    }
+                }
+            }
+        }
+
+        HorizontalLayout {
+            width: 100px;
+            alignment: center;
+            VerticalLayout {
+                alignment: center;
+                Switch {
+                    checked: root.item.caps-lock;
+                    toggled => {
+                        root.caps-toggled(self.checked);
+                    }
+                }
+            }
+        }
+
+        VerticalLayout {
+            width: 100px;
+            alignment: center;
+            Button {
+                text: @tr("Remove");
+                icon: @image-url("../assets/delete.svg");
+                colorize-icon: true;
+                icon-size: 16px;
+                clicked => {
+                    root.remove();
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        y: parent.height - 1px;
+        height: 1px;
+        background: Theme.divider;
+    }
+}
+
+component HomePage inherits VerticalLayout {
+    in property <[AppItem]> apps;
+    in property <int> mode;
+    in property <bool> english-installed: true;
+    in property <bool> drop-hover;
+    callback toggle-per-app();
+    callback toggle-always();
+    callback add-app();
+    callback install-english();
+    callback enabled-toggled(int, bool);
+    callback caps-toggled(int, bool);
+    callback remove(int);
+
+    padding: 24px;
+    spacing: 14px;
+
+    Text {
+        text: @tr("App-specific settings");
+        font-size: 24px;
+        font-weight: 600;
+        color: Theme.text;
+    }
+
+    if !root.english-installed: Rectangle {
+        background: Theme.warning-bg;
+        border-radius: 6px;
+        HorizontalLayout {
+            padding: 12px;
+            spacing: 12px;
+            Text {
+                horizontal-stretch: 1;
+                wrap: word-wrap;
+                vertical-alignment: center;
+                color: Theme.text;
+                text: @tr("The English (US) keyboard layout is not installed, so switching may not work. Please add the English (US) language in Windows settings.");
+            }
+
+            Button {
+                text: @tr("Go to install");
+                clicked => {
+                    root.install-english();
+                }
+            }
+        }
+    }
+
+    Card {
+        HorizontalLayout {
+            padding: 12px;
+            spacing: 10px;
+            Button {
+                text: root.mode == 1 ? @tr("Stop") : @tr("Start");
+                icon: root.mode == 1 ? @image-url("../assets/stop.png") : @image-url("../assets/start.png");
+                icon-size: 18px;
+                primary: root.mode != 1;
+                clicked => {
+                    root.toggle-per-app();
+                }
+            }
+
+            Button {
+                text: root.mode == 2 ? @tr("Stop AlwaysEnglish") : @tr("AlwaysEnglish");
+                primary: root.mode == 2;
+                clicked => {
+                    root.toggle-always();
+                }
+            }
+
+            Button {
+                text: @tr("Add an app");
+                icon: @image-url("../assets/add.svg");
+                colorize-icon: true;
+                icon-size: 16px;
+                clicked => {
+                    root.add-app();
+                }
+            }
+
+            Rectangle {
+                horizontal-stretch: 1;
+            }
+        }
+    }
+
+    Text {
+        color: Theme.text-secondary;
+        font-size: 12px;
+        wrap: word-wrap;
+        text: root.mode == 2 ? @tr("AlwaysEnglish: every app is kept on English (US). Whether Caps Lock is forced on is decided in Settings.") : @tr("Start: only the apps below whose \"Enabled\" switch is on are kept on English (US). AlwaysEnglish: keep every app on English (US).");
+    }
+
+    Card {
+        vertical-stretch: 1;
+        min-height: 200px;
+
+        VerticalLayout {
+            HorizontalLayout {
+                height: 38px;
+                padding-left: 14px;
+                padding-right: 14px;
+                spacing: 12px;
+                Rectangle {
+                    width: 32px;
+                }
+
+                Text {
+                    horizontal-stretch: 1;
+                    text: @tr("App");
+                    color: Theme.text-secondary;
+                    font-size: 12px;
+                    vertical-alignment: center;
+                }
+
+                Text {
+                    width: 100px;
+                    text: @tr("Enabled");
+                    color: Theme.text-secondary;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                Text {
+                    width: 100px;
+                    text: @tr("Caps Lock");
+                    color: Theme.text-secondary;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+
+                Text {
+                    width: 100px;
+                    text: @tr("Options");
+                    color: Theme.text-secondary;
+                    font-size: 12px;
+                    horizontal-alignment: center;
+                    vertical-alignment: center;
+                }
+            }
+
+            Rectangle {
+                height: 1px;
+                background: Theme.divider;
+            }
+
+            if root.apps.length == 0: Text {
+                vertical-stretch: 1;
+                wrap: word-wrap;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+                color: Theme.text-secondary;
+                font-size: 14px;
+                text: @tr("Drag .exe files or shortcuts here, or click \"Add an app\".");
+            }
+
+            if root.apps.length > 0: ListView {
+                vertical-stretch: 1;
+                for app[i] in root.apps: AppRow {
+                    item: app;
+                    enabled-toggled(v) => {
+                        root.enabled-toggled(i, v);
+                    }
+                    caps-toggled(v) => {
+                        root.caps-toggled(i, v);
+                    }
+                    remove => {
+                        root.remove(i);
+                    }
+                }
+            }
+        }
+
+        if root.drop-hover: Rectangle {
+            border-radius: 8px;
+            border-width: 2px;
+            border-color: Theme.accent;
+            background: Theme.accent.with-alpha(0.10);
+            Text {
+                text: @tr("Release to add");
+                font-size: 18px;
+                font-weight: 600;
+                color: Theme.accent;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+    }
+}
+
+component SectionTitle inherits Text {
+    color: Theme.text;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+component SettingRow inherits Card {
+    in property <string> title;
+    in property <string> description;
+
+    min-height: 64px;
+    HorizontalLayout {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        spacing: 16px;
+        VerticalLayout {
+            alignment: center;
+            horizontal-stretch: 1;
+            spacing: 2px;
+            Text {
+                text: root.title;
+                color: Theme.text;
+                font-size: 14px;
+                wrap: word-wrap;
+            }
+
+            if root.description != "": Text {
+                text: root.description;
+                color: Theme.text-secondary;
+                font-size: 12px;
+                wrap: word-wrap;
+            }
+        }
+
+        VerticalLayout {
+            alignment: center;
+            @children
+        }
+    }
+}
+
+component SettingsPage inherits ScrollView {
+    in-out property <int> theme-index;
+    in-out property <int> language-index;
+    in-out property <bool> auto-start;
+    in-out property <bool> resume-mode;
+    in-out property <bool> always-caps;
+    in-out property <int> close-action;
+    in property <string> version;
+    callback theme-selected(int);
+    callback language-selected(int);
+    callback auto-start-toggled(bool);
+    callback resume-mode-toggled(bool);
+    callback always-caps-toggled(bool);
+    callback close-action-selected(int);
+    callback open-url(string);
+
+    VerticalLayout {
+        padding: 24px;
+        spacing: 8px;
+        alignment: start;
+
+        Text {
+            text: @tr("Settings");
+            font-size: 24px;
+            font-weight: 600;
+            color: Theme.text;
+        }
+
+        SectionTitle {
+            text: @tr("Appearance");
+        }
+
+        SettingRow {
+            title: @tr("Theme");
+            ComboBox {
+                width: 200px;
+                model: [@tr("Follow system"), @tr("Light"), @tr("Dark")];
+                current-index <=> root.theme-index;
+                selected => {
+                    root.theme-selected(self.current-index);
+                }
+            }
+        }
+
+        SettingRow {
+            title: @tr("Language");
+            ComboBox {
+                width: 200px;
+                model: [@tr("Follow system"), "English", "简体中文"];
+                current-index <=> root.language-index;
+                selected => {
+                    root.language-selected(self.current-index);
+                }
+            }
+        }
+
+        SectionTitle {
+            text: @tr("Behavior");
+        }
+
+        SettingRow {
+            title: @tr("Running at start");
+            description: @tr("Start hidden in the system tray when you sign in to Windows.");
+            Switch {
+                checked <=> root.auto-start;
+                toggled => {
+                    root.auto-start-toggled(self.checked);
+                }
+            }
+        }
+
+        SettingRow {
+            title: @tr("Resume the last mode on launch");
+            description: @tr("If monitoring was running when the app was closed, start it again automatically.");
+            Switch {
+                checked <=> root.resume-mode;
+                toggled => {
+                    root.resume-mode-toggled(self.checked);
+                }
+            }
+        }
+
+        SettingRow {
+            title: @tr("Whether turn on Cap Lock when AlwaysEnglish is on");
+            description: @tr("Only applies to AlwaysEnglish mode. In Start mode this is set per app.");
+            Switch {
+                checked <=> root.always-caps;
+                toggled => {
+                    root.always-caps-toggled(self.checked);
+                }
+            }
+        }
+
+        SettingRow {
+            title: @tr("When closing the window");
+            ComboBox {
+                width: 200px;
+                model: [@tr("Ask every time"), @tr("Minimize to tray"), @tr("Quit")];
+                current-index <=> root.close-action;
+                selected => {
+                    root.close-action-selected(self.current-index);
+                }
+            }
+        }
+
+        SectionTitle {
+            text: @tr("About");
+        }
+
+        Card {
+            VerticalLayout {
+                padding: 16px;
+                spacing: 10px;
+                HorizontalLayout {
+                    spacing: 12px;
+                    alignment: start;
+                    Image {
+                        source: @image-url("../assets/icon.png");
+                        width: 40px;
+                        height: 40px;
+                    }
+
+                    VerticalLayout {
+                        alignment: center;
+                        Text {
+                            text: "AlwaysEnglish " + root.version;
+                            color: Theme.text;
+                            font-size: 15px;
+                            font-weight: 600;
+                        }
+
+                        Text {
+                            text: @tr("Rust + Slint edition");
+                            color: Theme.text-secondary;
+                            font-size: 12px;
+                        }
+                    }
+                }
+
+                Text {
+                    wrap: word-wrap;
+                    color: Theme.text;
+                    font-size: 13px;
+                    text: @tr("This is a Rust + Slint rewrite of AlwaysEnglish by ChaXxl. Many thanks to the original author for the idea and the original implementation, and to the FluentUI for QML project it was built on.");
+                }
+
+                HorizontalLayout {
+                    spacing: 8px;
+                    alignment: start;
+                    Button {
+                        text: @tr("Original project");
+                        clicked => {
+                            root.open-url("https://github.com/ChaXxl/AlwaysEnglish");
+                        }
+                    }
+
+                    Button {
+                        text: @tr("This project");
+                        clicked => {
+                            root.open-url("https://github.com/just-liuyi/AlwaysEnglish-rs");
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+component CloseDialog inherits Rectangle {
+    callback choose(int, bool);
+
+    background: Theme.overlay;
+    TouchArea { }
+
+    VerticalLayout {
+        alignment: center;
+        HorizontalLayout {
+            alignment: center;
+            Rectangle {
+                width: 460px;
+                background: Theme.card;
+                border-radius: 8px;
+                border-width: 1px;
+                border-color: Theme.card-border;
+                drop-shadow-blur: 24px;
+                drop-shadow-color: #00000040;
+
+                VerticalLayout {
+                    padding: 24px;
+                    spacing: 14px;
+                    Text {
+                        text: @tr("Quit");
+                        font-size: 20px;
+                        font-weight: 600;
+                        color: Theme.text;
+                    }
+
+                    Text {
+                        text: @tr("Are you sure you want to exit the program?");
+                        wrap: word-wrap;
+                        color: Theme.text;
+                    }
+
+                    Text {
+                        text: @tr("If minimized, AlwaysEnglish keeps running in the tray. Click the tray icon to open the window again.");
+                        wrap: word-wrap;
+                        color: Theme.text-secondary;
+                        font-size: 12px;
+                    }
+
+                    remember := CheckBox {
+                        text: @tr("Remember my choice");
+                    }
+
+                    HorizontalLayout {
+                        alignment: end;
+                        spacing: 8px;
+                        Button {
+                            text: @tr("Minimize");
+                            primary: true;
+                            clicked => {
+                                root.choose(0, remember.checked);
+                            }
+                        }
+
+                        Button {
+                            text: @tr("Cancel");
+                            clicked => {
+                                root.choose(1, false);
+                            }
+                        }
+
+                        Button {
+                            text: @tr("Quit");
+                            clicked => {
+                                root.choose(2, remember.checked);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+export component AppWindow inherits Window {
+    title: "AlwaysEnglish";
+    icon: @image-url("../assets/icon.png");
+    preferred-width: 920px;
+    preferred-height: 640px;
+    min-width: 760px;
+    min-height: 460px;
+    background: Theme.content;
+
+    in-out property <int> page: 0;
+    in property <[AppItem]> apps;
+    in property <int> mode;
+    in property <bool> english-installed: true;
+    in property <bool> drop-hover;
+    in property <string> toast;
+    in-out property <bool> show-close-dialog;
+    in property <string> version;
+
+    in-out property <int> theme-index;
+    in-out property <int> language-index;
+    in-out property <bool> auto-start;
+    in-out property <bool> resume-mode;
+    in-out property <bool> always-caps;
+    in-out property <int> close-action;
+
+    callback toggle-per-app();
+    callback toggle-always();
+    callback add-app();
+    callback install-english();
+    callback enabled-toggled(int, bool);
+    callback caps-toggled(int, bool);
+    callback remove-app(int);
+
+    callback theme-selected(int);
+    callback language-selected(int);
+    callback auto-start-toggled(bool);
+    callback resume-mode-toggled(bool);
+    callback always-caps-toggled(bool);
+    callback close-action-selected(int);
+    callback open-url(string);
+    callback close-dialog-choice(int, bool);
+
+    // Invoked from Rust (also from other threads via upgrade_in_event_loop) to bring the window back.
+    callback request-show();
+
+    public function set-dark(dark: bool) {
+        Palette.color-scheme = dark ? ColorScheme.dark : ColorScheme.light;
+    }
+
+    HorizontalLayout {
+        Rectangle {
+            width: 208px;
+            background: Theme.sidebar;
+            VerticalLayout {
+                padding: 10px;
+                padding-top: 18px;
+                spacing: 4px;
+
+                HorizontalLayout {
+                    padding-left: 8px;
+                    padding-bottom: 16px;
+                    spacing: 10px;
+                    Image {
+                        source: @image-url("../assets/icon.png");
+                        width: 26px;
+                        height: 26px;
+                    }
+
+                    Text {
+                        text: "AlwaysEnglish";
+                        font-size: 15px;
+                        font-weight: 600;
+                        vertical-alignment: center;
+                        color: Theme.text;
+                    }
+                }
+
+                NavItem {
+                    text: @tr("Home");
+                    icon: @image-url("../assets/home.svg");
+                    selected: root.page == 0;
+                    clicked => {
+                        root.page = 0;
+                    }
+                }
+
+                NavItem {
+                    text: @tr("Settings");
+                    icon: @image-url("../assets/settings.svg");
+                    selected: root.page == 1;
+                    clicked => {
+                        root.page = 1;
+                    }
+                }
+
+                Rectangle {
+                    vertical-stretch: 1;
+                }
+
+                HorizontalLayout {
+                    padding-left: 4px;
+                    padding-bottom: 6px;
+                    alignment: start;
+                    StatusPill {
+                        mode: root.mode;
+                    }
+                }
+            }
+        }
+
+        Rectangle {
+            horizontal-stretch: 1;
+
+            if root.page == 0: HomePage {
+                apps: root.apps;
+                mode: root.mode;
+                english-installed: root.english-installed;
+                drop-hover: root.drop-hover;
+                toggle-per-app => {
+                    root.toggle-per-app();
+                }
+                toggle-always => {
+                    root.toggle-always();
+                }
+                add-app => {
+                    root.add-app();
+                }
+                install-english => {
+                    root.install-english();
+                }
+                enabled-toggled(i, v) => {
+                    root.enabled-toggled(i, v);
+                }
+                caps-toggled(i, v) => {
+                    root.caps-toggled(i, v);
+                }
+                remove(i) => {
+                    root.remove-app(i);
+                }
+            }
+
+            if root.page == 1: SettingsPage {
+                theme-index <=> root.theme-index;
+                language-index <=> root.language-index;
+                auto-start <=> root.auto-start;
+                resume-mode <=> root.resume-mode;
+                always-caps <=> root.always-caps;
+                close-action <=> root.close-action;
+                version: root.version;
+                theme-selected(i) => {
+                    root.theme-selected(i);
+                }
+                language-selected(i) => {
+                    root.language-selected(i);
+                }
+                auto-start-toggled(v) => {
+                    root.auto-start-toggled(v);
+                }
+                resume-mode-toggled(v) => {
+                    root.resume-mode-toggled(v);
+                }
+                always-caps-toggled(v) => {
+                    root.always-caps-toggled(v);
+                }
+                close-action-selected(i) => {
+                    root.close-action-selected(i);
+                }
+                open-url(u) => {
+                    root.open-url(u);
+                }
+            }
+        }
+    }
+
+    if root.toast != "": Rectangle {
+        width: toast-text.preferred-width + 36px;
+        height: 38px;
+        x: (parent.width - self.width) / 2 + 104px;
+        y: parent.height - self.height - 28px;
+        border-radius: 19px;
+        background: Theme.dark ? #3a3a3a : #2b2b2b;
+        drop-shadow-blur: 12px;
+        drop-shadow-color: #00000040;
+        toast-text := Text {
+            text: root.toast;
+            color: #ffffff;
+            font-size: 13px;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+    }
+
+    if root.show-close-dialog: CloseDialog {
+        choose(action, remember) => {
+            root.close-dialog-choice(action, remember);
+        }
+    }
+}
+
+export component Tray inherits SystemTrayIcon {
+    in property <int> mode;
+    callback show-window();
+    callback toggle-per-app();
+    callback toggle-always();
+    callback quit();
+
+    icon: @image-url("../assets/icon.png");
+    tooltip: "AlwaysEnglish - " + (root.mode == 0 ? @tr("Stopped") : (root.mode == 1 ? @tr("Running · selected apps") : @tr("Running · all apps")));
+
+    clicked => {
+        root.show-window();
+    }
+
+    Menu {
+        MenuItem {
+            title: @tr("Show window");
+            activated => {
+                root.show-window();
+            }
+        }
+
+        MenuSeparator { }
+
+        MenuItem {
+            title: @tr("Selected apps only");
+            checked: root.mode == 1;
+            activated => {
+                root.toggle-per-app();
+            }
+        }
+
+        MenuItem {
+            title: @tr("AlwaysEnglish (all apps)");
+            checked: root.mode == 2;
+            activated => {
+                root.toggle-always();
+            }
+        }
+
+        MenuSeparator { }
+
+        MenuItem {
+            title: @tr("Quit");
+            activated => {
+                root.quit();
+            }
+        }
+    }
+}
