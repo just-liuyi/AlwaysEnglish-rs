@@ -51,7 +51,9 @@
 
 ## 下载与使用
 
-1. 按下面的“编译”一节生成 `AlwaysEnglish.exe`（单个文件，无需安装；发布后也可以从 [Releases](https://github.com/just-liuyi/AlwaysEnglish-rs/releases) 下载）。
+1. 从 [Releases](https://github.com/just-liuyi/AlwaysEnglish-rs/releases/latest) 下载，二选一：
+   - `AlwaysEnglish-<版本>-setup-x64.exe`：**安装版**。默认只为当前用户安装，不需要管理员权限，也可以选择为所有用户安装。会创建开始菜单快捷方式，可选桌面快捷方式和开机自启动，可以在“设置 → 应用”中卸载。
+   - `AlwaysEnglish-<版本>-portable-x64.exe`：**便携版**。单个文件，双击就能运行。
 2. 运行后，把需要保持英文的软件（或它的快捷方式）拖进列表。
 3. 点击 **启动**。如果想让所有软件都保持英文，点击 **始终为英文**。
 
@@ -75,6 +77,12 @@ cargo build --release
 cargo test
 ```
 
+生成发布文件（便携版、安装包和 SHA256 校验值，输出到 `dist\`），需要先安装 [Inno Setup 6](https://jrsoftware.org/isinfo.php)：
+
+```powershell
+.\packaging\build-release.ps1
+```
+
 ### 目录结构
 
 ```
@@ -87,6 +95,7 @@ src/icons.rs           提取 exe 图标
 src/single_instance.rs 单实例：命名互斥体 + 命名管道
 src/config.rs          配置读写
 src/legacy.rs          导入原版的 QSettings INI 配置
+packaging/             Inno Setup 安装脚本和发布脚本
 ```
 
 ### 工作原理

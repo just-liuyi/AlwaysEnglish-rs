@@ -324,7 +324,11 @@ fn main() {
     };
 
     platform::init_com();
-    let (config, source) = Config::load();
+    let (mut config, source) = Config::load();
+    // The installer can also register the app to run at startup.
+    let registered = platform::auto_start_registered();
+    let auto_start_changed = registered && !config.auto_start;
+    config.auto_start |= registered;
 
     let ui = AppWindow::new().expect("failed to create the main window");
     let tray = Tray::new().expect("failed to create the tray icon");
@@ -359,7 +363,7 @@ fn main() {
 
     app.apply_language();
     app.apply_theme();
-    if source == Source::MigratedFromQt {
+    if source == Source::MigratedFromQt || auto_start_changed {
         app.save();
     }
     if auto_start {

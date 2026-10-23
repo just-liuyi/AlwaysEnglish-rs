@@ -204,3 +204,14 @@ pub fn set_auto_start(enable: bool) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// Whether `HKCU\...\Run` already starts this executable (e.g. set up by the installer).
+pub fn auto_start_registered() -> bool {
+    let Ok(exe) = std::env::current_exe() else { return false };
+    let exe = exe.display().to_string().to_lowercase();
+    windows_registry::CURRENT_USER
+        .open(RUN_KEY)
+        .and_then(|k| k.get_string(RUN_VALUE))
+        .map(|v| v.to_lowercase().contains(&exe))
+        .unwrap_or(false)
+}
