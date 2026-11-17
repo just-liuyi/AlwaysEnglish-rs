@@ -87,10 +87,10 @@ msgstr "始终为英文"
 msgid "Add an app"
 msgstr "添加应用"
 
-msgid "AlwaysEnglish: every app is kept on English (US). Whether Caps Lock is forced on is decided in Settings."
+msgid "AlwaysEnglish: every app is kept on the English input method. Whether Caps Lock is forced on is decided in Settings."
 msgstr "始终为英文：所有软件都保持英文输入法，是否同时打开大小写键在“设置”中决定。"
 
-msgid "Start: only the apps below whose \"Enabled\" switch is on are kept on English (US). AlwaysEnglish: keep every app on English (US)."
+msgid "Start: only the apps below whose \"Enabled\" switch is on are kept on the English input method. AlwaysEnglish: keep every app on English."
 msgstr "启动：只让下方列表中“启用”的软件保持英文输入法。始终为英文：所有软件都保持英文输入法（适合单机游戏玩家）。"
 
 msgid "App"

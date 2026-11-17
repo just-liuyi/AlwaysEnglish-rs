@@ -33,7 +33,7 @@
 - 把 `.exe` 或快捷方式（`.lnk`）**拖进窗口**即可添加，也可以点“添加应用”选择。
 - 系统托盘：左键打开窗口，右键菜单可以直接切换模式或退出。
 - 开机自启动（启动后隐藏在托盘中）、浅色 / 深色 / 跟随系统主题、中文 / English 界面。
-- 系统没有安装美式英文键盘时会给出提示，并可一键跳转到 Windows 语言设置。
+- 系统里一个英语键盘都没有时会给出提示，并可一键跳转到 Windows 语言设置。
 
 ### 和原版相比的变化
 
@@ -84,6 +84,16 @@ cargo test
 .\packaging\build-release.ps1
 ```
 
+### 换图标
+
+把一张 1024×1024 的 PNG 存成 `assets/icon-source.png`，然后运行（需要 Pillow）：
+
+```shell
+python packaging/make-icon.py
+```
+
+它会生成 `assets/icon.png`（窗口、托盘、界面里用）和 `assets/favicon.ico`（exe 和安装包用，含 16 到 256 像素各尺寸），重新打包即可。
+
 ### 目录结构
 
 ```
@@ -96,7 +106,8 @@ src/icons.rs           提取 exe 图标
 src/single_instance.rs 单实例：命名互斥体 + 命名管道
 src/config.rs          配置读写
 src/legacy.rs          导入原版的 QSettings INI 配置
-packaging/             Inno Setup 安装脚本和发布脚本
+packaging/             Inno Setup 安装脚本、发布脚本、图标生成脚本
+assets/icon-source.png 图标的原始大图（改图标从这里开始）
 ```
 
 ### 工作原理
