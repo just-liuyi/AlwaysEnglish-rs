@@ -1,6 +1,6 @@
 [package]
 name = "always-english"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2024"
 description = "Keep selected Windows apps on the English (US) keyboard layout. A Rust + Slint rewrite of ChaXxl/AlwaysEnglish."
 license = "Apache-2.0"

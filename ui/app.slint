@@ -37,6 +37,7 @@ export global Strings {
     out property <string> stopped: @tr("Stopped");
     out property <string> autostart-failed: @tr("Could not change the startup setting");
     out property <string> pick-title: @tr("select an APP");
+    out property <string> no-english-input: @tr("No English input method detected");
     out property <string> pick-filter: @tr("Programs and shortcuts");
     public pure function added(name: string) -> string {
         return @tr("Added {}", name);
@@ -281,7 +282,7 @@ component HomePage inherits VerticalLayout {
                 wrap: word-wrap;
                 vertical-alignment: center;
                 color: Theme.text;
-                text: @tr("The English (US) keyboard layout is not installed, so switching may not work. Please add the English (US) language in Windows settings.");
+                text: @tr("No English keyboard layout is installed, so apps cannot be kept on English. Please add an English language (any region) and its keyboard in Windows settings.");
             }
 
             Button {
@@ -488,6 +489,7 @@ component SettingsPage inherits ScrollView {
     in-out property <bool> always-caps;
     in-out property <int> close-action;
     in property <string> version;
+    in property <string> target-layout;
     callback theme-selected(int);
     callback language-selected(int);
     callback auto-start-toggled(bool);
@@ -538,6 +540,17 @@ component SettingsPage inherits ScrollView {
 
         SectionTitle {
             text: @tr("Behavior");
+        }
+
+        SettingRow {
+            title: @tr("English input method used");
+            description: @tr("Any installed English keyboard works, no matter the region (United States, United Kingdom, India, Australia, Hong Kong, ...). When several are installed, the one matching your Windows display language is used.");
+            Text {
+                text: root.target-layout;
+                color: Theme.text;
+                font-size: 13px;
+                vertical-alignment: center;
+            }
         }
 
         SettingRow {
@@ -742,6 +755,7 @@ export component AppWindow inherits Window {
     in property <string> toast;
     in-out property <bool> show-close-dialog;
     in property <string> version;
+    in property <string> target-layout;
 
     in-out property <int> theme-index;
     in-out property <int> language-index;
@@ -874,6 +888,7 @@ export component AppWindow inherits Window {
                 always-caps <=> root.always-caps;
                 close-action <=> root.close-action;
                 version: root.version;
+                target-layout: root.target-layout;
                 theme-selected(i) => {
                     root.theme-selected(i);
                 }

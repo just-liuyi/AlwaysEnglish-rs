@@ -3,7 +3,7 @@
 
 # AlwaysEnglish · Rust + Slint 版
 
-让指定的软件**始终保持英文输入法**（English (US) 键盘），从此不再担心误触切换输入法！
+让指定的软件**始终保持英文输入法**（任意地区的英语键盘都可以），从此不再担心误触切换输入法！
 
 [原项目](https://github.com/ChaXxl/AlwaysEnglish) · [English](#english)
 
@@ -42,6 +42,7 @@
 | **单实例** | 无，可以同时打开多个，多个定时器会互相抢着切换 | 只运行一个实例；再次打开时会把已运行的窗口（包括隐藏在托盘里的）调到前台 |
 | 软件匹配 | 子串匹配（`a.exe` 可能误匹配路径里含 `a` 的软件） | 按 exe 文件名精确匹配（不区分大小写） |
 | 快捷方式解析 | 返回 8.3 短路径，可能匹配失败 | 返回完整长路径 |
+| 英语输入法识别 | 只认英语（美国），英式、印度等英语键盘会被误判为“未安装” | 按语言族识别，任意地区的英语键盘都能用，“设置”里会显示实际使用的输入法 |
 | 定时检查 | 每 100 ms 新建一个 JS 引擎解析 JSON 配置 | 规则保存在内存中，只在修改时更新 |
 | 开机自启后 | 需要手动点“启动” | 可自动恢复上次的运行状态（可在设置中关闭） |
 | 关闭按钮 | 每次询问 | 每次询问 / 最小化到托盘 / 退出，可以记住选择 |
@@ -57,7 +58,7 @@
 2. 运行后，把需要保持英文的软件（或它的快捷方式）拖进列表。
 3. 点击 **启动**。如果想让所有软件都保持英文，点击 **始终为英文**。
 
-需要 Windows 10 / 11，并且系统里装有 **英语（美国）** 键盘布局。
+需要 Windows 10 / 11，并且系统里装有**英语键盘**——不限制地区，美国、英国、印度、澳大利亚、中国香港等都可以；装了多个时会优先使用和 Windows 显示语言一致的那个，“设置”里能看到实际用的是哪一个。
 
 ### 配置文件
 
@@ -117,7 +118,7 @@ packaging/             Inno Setup 安装脚本和发布脚本
 
 ## English
 
-**AlwaysEnglish** keeps chosen Windows apps on the English (US) keyboard layout, so an accidental hotkey can no longer switch them to another input method. This is a Rust + [Slint](https://slint.dev) rewrite of [ChaXxl/AlwaysEnglish](https://github.com/ChaXxl/AlwaysEnglish). Many thanks to [@ChaXxl](https://github.com/ChaXxl) for the original project, and to [FluentUI for QML](https://github.com/zhuzichu520/FluentUI), which the original UI was built on.
+**AlwaysEnglish** keeps chosen Windows apps on an English keyboard layout (any region), so an accidental hotkey can no longer switch them to another input method. This is a Rust + [Slint](https://slint.dev) rewrite of [ChaXxl/AlwaysEnglish](https://github.com/ChaXxl/AlwaysEnglish). Many thanks to [@ChaXxl](https://github.com/ChaXxl) for the original project, and to [FluentUI for QML](https://github.com/zhuzichu520/FluentUI), which the original UI was built on.
 
 What changed compared with the original: the app now runs as a single instance (launching it again brings the running window to the front), apps are matched by exact executable name, the last mode can be resumed on launch, the close button behaviour is configurable, the tray menu can switch modes, settings from the Qt version are imported, and the release is a single ~9 MB executable.
 

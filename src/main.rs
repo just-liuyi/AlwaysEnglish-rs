@@ -51,6 +51,8 @@ struct App {
     mode: Cell<Mode>,
     apps: Rc<VecModel<AppItem>>,
     toast_timer: Timer,
+    /// Language id of the English layout shown in the settings page (0 = none found).
+    target_langid: Cell<usize>,
 }
 
 impl App {
@@ -223,6 +225,30 @@ impl App {
         });
     }
 
+    /// Whether the interface is currently shown in Chinese.
+    fn uses_chinese_ui(&self) -> bool {
+        match self.config.borrow().language {
+            Language::Chinese => true,
+            Language::English => false,
+            Language::System => platform::system_language_is_chinese(),
+        }
+    }
+
+    /// Keeps the settings page in sync with the English input method that will be used.
+    fn sync_target_layout(&self) {
+        let langid = platform::installed_english_layout().map(platform::langid_of).unwrap_or(0);
+        if self.target_langid.get() == langid {
+            return;
+        }
+        self.target_langid.set(langid);
+        let text: SharedString = if langid == 0 {
+            self.strings().get_no_english_input()
+        } else {
+            platform::english_layout_name(langid, self.uses_chinese_ui()).into()
+        };
+        self.ui.set_target_layout(text);
+    }
+
     fn apply_language(&self) {
         let language = match self.config.borrow().language {
             Language::System if platform::system_language_is_chinese() => "zh_CN",
@@ -230,10 +256,14 @@ impl App {
             Language::Chinese => "zh_CN",
         };
         let _ = slint::select_bundled_translation(language);
+        // The input method name is written in the interface language.
+        self.target_langid.set(0);
+        self.sync_target_layout();
     }
 
     fn show_window(self: &Rc<Self>) {
         self.ui.set_english_installed(platform::is_english_installed());
+        self.sync_target_layout();
         let _ = self.ui.show();
         // The native window may only exist once the event loop has processed the show request.
         let weak = Rc::downgrade(self);
@@ -359,6 +389,7 @@ fn main() {
         mode: Cell::new(Mode::Stopped),
         apps,
         toast_timer: Timer::default(),
+        target_langid: Cell::new(0),
     });
 
     app.apply_language();
@@ -472,6 +503,8 @@ fn main() {
         tick_timer.start(TimerMode::Repeated, engine::TICK, move || {
             if let Some(a) = weak.upgrade() {
                 a.engine.borrow_mut().tick();
+                // Picks up input methods installed or removed while the app is running.
+                a.sync_target_layout();
             }
         });
     }

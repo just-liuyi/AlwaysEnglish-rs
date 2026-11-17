@@ -57,8 +57,17 @@ msgstr "移除"
 msgid "App-specific settings"
 msgstr "APP 设置"
 
-msgid "The English (US) keyboard layout is not installed, so switching may not work. Please add the English (US) language in Windows settings."
-msgstr "系统没有安装美式英文输入法，软件可能无法切换。请到设置里安装美式英文语言及输入法。"
+msgid "No English keyboard layout is installed, so apps cannot be kept on English. Please add an English language (any region) and its keyboard in Windows settings."
+msgstr "没有检测到英语输入法，软件无法把其他程序切换到英文。请在 Windows 设置里添加英语语言（任意地区）及其键盘。"
+
+msgid "No English input method detected"
+msgstr "没有检测到英语输入法"
+
+msgid "English input method used"
+msgstr "使用的英语输入法"
+
+msgid "Any installed English keyboard works, no matter the region (United States, United Kingdom, India, Australia, Hong Kong, ...). When several are installed, the one matching your Windows display language is used."
+msgstr "只要是英语输入法都可以用，不限制地区（美国、英国、印度、澳大利亚、中国香港等）。如果装了多个，会优先使用和 Windows 显示语言一致的那个。"
 
 msgid "Go to install"
 msgstr "去安装"
